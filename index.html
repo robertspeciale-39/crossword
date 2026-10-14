@@ -497,7 +497,7 @@ table.cs-table { width: 100%; border-collapse: collapse; }
 }
 
 /* Locked state before Start */
-.xw-locked .xw-grid, .xw-locked .xw-clues, .xw-locked .xw-cluebar { filter: blur(6px); opacity: .5; pointer-events: none; user-select: none; }
+.xw-locked .xw-grid, .xw-locked .xw-clues, .xw-locked .xw-cluebar, .xw-locked .xw-bank { filter: blur(6px); opacity: .5; pointer-events: none; user-select: none; }
 .xw-gate {
   position: absolute; inset: 0; z-index: 5; display: none;
   align-items: center; justify-content: center; padding: var(--sp-6);
@@ -514,9 +514,40 @@ table.cs-table { width: 100%; border-collapse: collapse; }
 }
 .xw-gate-card p { color: var(--text-2); font-size: var(--fs-sm); margin-bottom: var(--sp-4); }
 
+/* Word bank */
+.xw-bank { border-bottom: 1px solid var(--line); flex-shrink: 0; }
+.xw-bank summary {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2);
+  min-height: 44px; padding: var(--sp-2) var(--sp-5); cursor: pointer;
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 700;
+  color: var(--primary); letter-spacing: .14em; text-transform: uppercase;
+}
+.xw-bank summary::marker { color: var(--text-dim); }
+.xw-bank-count { color: var(--text-dim); font-weight: 600; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
+.xw-bank-body { padding: 0 var(--sp-5) var(--sp-4); max-height: 42dvh; overflow-y: auto; }
+.xw-bank-body h3 {
+  font-family: var(--font-mono); font-size: var(--fs-2xs); font-weight: 600; color: var(--text-dim);
+  letter-spacing: .12em; text-transform: uppercase; margin: var(--sp-2) 0 var(--sp-2);
+}
+.xw-bank-body ul { list-style: none; display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-2); }
+.xw-chip {
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .03em;
+  text-transform: uppercase; color: var(--text-bright);
+  padding: 3px var(--sp-2); border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: var(--surface-2);
+}
+/* Solved: strikethrough + check, never colour alone */
+.xw-chip.solved { color: var(--text-dim); text-decoration: line-through; border-color: var(--line); background: transparent; }
+.xw-chip.solved::before { content: '✓ '; color: var(--u1); text-decoration: none; display: inline-block; margin-right: 2px; }
+
+.geo-tag {
+  font-family: var(--font-mono); font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .08em;
+  color: var(--u3); border: 1px solid color-mix(in srgb, var(--u3) 50%, transparent);
+  background: var(--u3s); border-radius: var(--r-sm); padding: 0 5px; margin-right: 2px;
+}
+
 /* Clue lists */
 .xw-cluepanel { position: sticky; top: 132px; max-height: calc(100dvh - 156px); display: flex; flex-direction: column; }
-.xw-clues { overflow-y: auto; padding: var(--sp-2) var(--sp-3) var(--sp-4); }
+.xw-clues { overflow-y: auto; flex: 1 1 auto; min-height: 0; padding: var(--sp-2) var(--sp-3) var(--sp-4); }
 .xw-clues h3 {
   font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 700; color: var(--primary);
   letter-spacing: .14em; text-transform: uppercase; padding: var(--sp-3) var(--sp-2) var(--sp-2);
@@ -740,7 +771,8 @@ function csSetTheme(name, persist) {
 // ══════════════════════════════════════════
 //  APP LOGIC
 // ══════════════════════════════════════════
-const PUZZLES = {"u1": {"rows": 16, "cols": 17, "entries": [{"n": 3, "d": "A", "r": 1, "c": 0, "a": "PASSPHRASE", "clue": "Long password made of several random words", "en": "10"}, {"n": 7, "d": "A", "r": 4, "c": 0, "a": "WARDRIVING", "clue": "Cruising around looking for Wi-Fi signals to attack", "en": "3,7"}, {"n": 9, "d": "A", "r": 6, "c": 9, "a": "PHISHING", "clue": "Fake message that tries to trick you into clicking a link or sharing info", "en": "8"}, {"n": 11, "d": "A", "r": 8, "c": 9, "a": "EVILTWIN", "clue": "Fake Wi-Fi hotspot named to look like the real one", "en": "4,4"}, {"n": 14, "d": "A", "r": 10, "c": 0, "a": "DEEPFAKE", "clue": "AI-made fake video or voice of a real person", "en": "8"}, {"n": 15, "d": "A", "r": 10, "c": 9, "a": "MFA", "clue": "Requires a code or second proof of identity, not just a password (abbr.)", "en": "3"}, {"n": 16, "d": "A", "r": 14, "c": 1, "a": "ELICITATION", "clue": "Getting someone to reveal sensitive info through conversation", "en": "11"}, {"n": 1, "d": "D", "r": 0, "c": 1, "a": "MALWARE", "clue": "Malicious software, like a virus", "en": "7"}, {"n": 2, "d": "D", "r": 0, "c": 7, "a": "JAMMING", "clue": "Blasting a strong signal so nobody can use the Wi-Fi", "en": "7"}, {"n": 4, "d": "D", "r": 1, "c": 3, "a": "SSID", "clue": "The name of a Wi-Fi network", "en": "4"}, {"n": 5, "d": "D", "r": 3, "c": 5, "a": "DICTIONARY", "clue": "Attack that tries a big list of likely passwords", "en": "10"}, {"n": 6, "d": "D", "r": 3, "c": 11, "a": "INTIMIDATION", "clue": "Social engineering tactic that uses threats and fear", "en": "12"}, {"n": 8, "d": "D", "r": 4, "c": 16, "a": "URGENCY", "clue": "\"Act NOW or your account closes!\" is this social engineering tactic", "en": "7"}, {"n": 10, "d": "D", "r": 6, "c": 13, "a": "HTTPS", "clue": "The secure, encrypted version of the web protocol", "en": "5"}, {"n": 12, "d": "D", "r": 9, "c": 3, "a": "VPN", "clue": "Encrypts your traffic on public Wi-Fi (abbr.)", "en": "3"}, {"n": 13, "d": "D", "r": 9, "c": 7, "a": "ZERODAY", "clue": "Brand-new vulnerability that defenders don't know about yet", "en": "4,3"}], "title": "Unit 1 · Introduction to Security", "topics": "Topics 1.1–1.5"}, "u2": {"rows": 21, "cols": 19, "entries": [{"n": 2, "d": "A", "r": 2, "c": 2, "a": "CONFIDENTIALITY", "clue": "CIA triad: only authorized people can see the data", "en": "15"}, {"n": 5, "d": "A", "r": 4, "c": 0, "a": "AUTHORITY", "clue": "Social engineering tactic: pretending to be the boss", "en": "9"}, {"n": 6, "d": "A", "r": 4, "c": 11, "a": "OSINT", "clue": "Public, freely available information used for recon (abbr.)", "en": "5"}, {"n": 8, "d": "A", "r": 6, "c": 7, "a": "SCRIPTKIDDIE", "clue": "Low-skill attacker using other people's tools", "en": "6,6"}, {"n": 11, "d": "A", "r": 11, "c": 9, "a": "TAILGATING", "clue": "Sneaking in behind someone without them noticing", "en": "10"}, {"n": 12, "d": "A", "r": 13, "c": 7, "a": "RISK", "clue": "What you get when a threat can exploit a vulnerability", "en": "4"}, {"n": 13, "d": "A", "r": 14, "c": 0, "a": "THREAT", "clue": "Anything that could cause harm, like an attacker or a flood", "en": "6"}, {"n": 14, "d": "A", "r": 15, "c": 9, "a": "INTEGRITY", "clue": "CIA triad: data stays accurate and unchanged", "en": "9"}, {"n": 15, "d": "A", "r": 16, "c": 1, "a": "INSIDER", "clue": "Threat who already works inside the organization", "en": "7"}, {"n": 16, "d": "A", "r": 18, "c": 6, "a": "MITIGATION", "clue": "Adding controls to reduce a risk", "en": "10"}, {"n": 1, "d": "D", "r": 0, "c": 2, "a": "HACKTIVIST", "clue": "Hacker driven by a political or social cause", "en": "10"}, {"n": 3, "d": "D", "r": 2, "c": 12, "a": "ASSET", "clue": "Anything of value an organization wants to protect", "en": "5"}, {"n": 4, "d": "D", "r": 2, "c": 18, "a": "PRETEXTING", "clue": "Making up a believable story or reason to contact a target", "en": "10"}, {"n": 5, "d": "D", "r": 4, "c": 0, "a": "AVAILABILITY", "clue": "CIA triad: systems are up when people need them", "en": "12"}, {"n": 7, "d": "D", "r": 5, "c": 10, "a": "PIGGYBACKING", "clue": "Tricking someone into holding the door for you", "en": "12"}, {"n": 8, "d": "D", "r": 6, "c": 7, "a": "SHOULDERSURFING", "clue": "Peeking at someone's screen or keypad", "en": "8,7"}, {"n": 9, "d": "D", "r": 6, "c": 15, "a": "DUMPSTERDIVING", "clue": "Digging through trash for useful information", "en": "8,6"}, {"n": 10, "d": "D", "r": 8, "c": 4, "a": "VULNERABILITY", "clue": "A weakness or flaw that could be exploited", "en": "13"}], "title": "Unit 2 · Securing Spaces", "topics": "Topics 2.1–2.4"}, "u3": {"rows": 16, "cols": 15, "entries": [{"n": 3, "d": "A", "r": 2, "c": 7, "a": "ARP", "clue": "Protocol that matches IP addresses to MAC addresses (abbr.)", "en": "3"}, {"n": 7, "d": "A", "r": 5, "c": 4, "a": "TELNET", "clue": "Insecure remote-login service routers should disable", "en": "6"}, {"n": 8, "d": "A", "r": 6, "c": 9, "a": "SWITCH", "clue": "Network device a MAC flooding attack overloads", "en": "6"}, {"n": 9, "d": "A", "r": 7, "c": 4, "a": "WEP", "clue": "Old, insecure Wi-Fi encryption (abbr.)", "en": "3"}, {"n": 11, "d": "A", "r": 8, "c": 1, "a": "ICMP", "clue": "Protocol used by ping (abbr.)", "en": "4"}, {"n": 12, "d": "A", "r": 9, "c": 11, "a": "DDOS", "clue": "Denial of service from many devices at once (abbr.)", "en": "4"}, {"n": 13, "d": "A", "r": 10, "c": 6, "a": "SMURF", "clue": "DoS attack that floods a victim with ping replies", "en": "5"}, {"n": 14, "d": "A", "r": 12, "c": 5, "a": "ONPATH", "clue": "Attack where someone secretly sits between two parties (formerly man-in-the-middle)", "en": "2-4"}, {"n": 15, "d": "A", "r": 14, "c": 0, "a": "SNIFFING", "clue": "Capturing network traffic to read it (also called eavesdropping)", "en": "8"}, {"n": 1, "d": "D", "r": 0, "c": 7, "a": "BEACON", "clue": "___ frame: announces a Wi-Fi network's name", "en": "6"}, {"n": 2, "d": "D", "r": 1, "c": 5, "a": "ROGUE", "clue": "___ access point: an unauthorized WAP plugged into the network", "en": "5"}, {"n": 4, "d": "D", "r": 2, "c": 9, "a": "PORTSECURITY", "clue": "Switch setting that blocks unknown devices plugged into a jack", "en": "4,8"}, {"n": 5, "d": "D", "r": 4, "c": 1, "a": "MACFILTERING", "clue": "Only letting approved device addresses join the network", "en": "3,9"}, {"n": 6, "d": "D", "r": 4, "c": 13, "a": "MACSPOOFING", "clue": "Faking a device's hardware address", "en": "3,8"}, {"n": 9, "d": "D", "r": 7, "c": 4, "a": "WPA3", "clue": "Strongest Wi-Fi encryption today", "en": "4"}, {"n": 10, "d": "D", "r": 7, "c": 6, "a": "POISONING", "clue": "DNS ___: planting a fake record to send users to a bad site", "en": "9"}], "title": "Topics 3.1 & 3.2 · Securing Networks", "topics": "Network Attacks · Managerial Controls & Wireless Security"}};
+const PUZZLES = {"u1": {"rows": 19, "cols": 19, "entries": [{"n": 3, "d": "A", "r": 1, "c": 9, "a": "PHISHING", "t": "Phishing", "clue": "Fake message that tries to trick you into clicking a link or sharing info", "en": "8"}, {"n": 5, "d": "A", "r": 2, "c": 2, "a": "EVILTWIN", "t": "Evil twin", "clue": "Fake Wi-Fi hotspot named to look like the real one", "en": "4,4"}, {"n": 7, "d": "A", "r": 3, "c": 13, "a": "HTTPS", "t": "HTTPS", "clue": "The secure, encrypted version of the web protocol", "en": "5"}, {"n": 10, "d": "A", "r": 5, "c": 0, "a": "JAMMING", "t": "Jamming", "clue": "Blasting a strong signal so nobody can use the Wi-Fi", "en": "7"}, {"n": 11, "d": "A", "r": 6, "c": 9, "a": "WARDRIVING", "t": "War driving", "clue": "Cruising around looking for Wi-Fi signals to attack", "en": "3,7"}, {"n": 14, "d": "A", "r": 8, "c": 8, "a": "ELICITATION", "t": "Elicitation", "clue": "Getting someone to reveal sensitive info through conversation", "en": "11"}, {"n": 16, "d": "A", "r": 11, "c": 10, "a": "TOKYO", "t": "Tokyo", "clue": "Capital of Japan", "en": "5", "g": 1}, {"n": 18, "d": "A", "r": 12, "c": 1, "a": "PASSPHRASE", "t": "Passphrase", "clue": "Long password made of several random words", "en": "10"}, {"n": 20, "d": "A", "r": 12, "c": 14, "a": "NILE", "t": "Nile", "clue": "Longest river in Africa", "en": "4", "g": 1}, {"n": 21, "d": "A", "r": 14, "c": 1, "a": "PARIS", "t": "Paris", "clue": "Capital of France", "en": "5", "g": 1}, {"n": 22, "d": "A", "r": 14, "c": 14, "a": "EGYPT", "t": "Egypt", "clue": "Country home to the Great Pyramids of Giza", "en": "5", "g": 1}, {"n": 23, "d": "A", "r": 18, "c": 11, "a": "MALWARE", "t": "Malware", "clue": "Malicious software, like a virus", "en": "7"}, {"n": 1, "d": "D", "r": 0, "c": 9, "a": "VPN", "t": "VPN", "clue": "Encrypts your traffic on public Wi-Fi (abbr.)", "en": "3"}, {"n": 2, "d": "D", "r": 1, "c": 4, "a": "DICTIONARY", "t": "Dictionary", "clue": "Attack that tries a big list of likely passwords", "en": "10"}, {"n": 4, "d": "D", "r": 1, "c": 14, "a": "INTIMIDATION", "t": "Intimidation", "clue": "Social engineering tactic that uses threats and fear", "en": "12"}, {"n": 6, "d": "D", "r": 3, "c": 1, "a": "MFA", "t": "MFA", "clue": "Requires a code or second proof of identity, not just a password (abbr.)", "en": "3"}, {"n": 8, "d": "D", "r": 3, "c": 16, "a": "PACIFIC", "t": "Pacific", "clue": "Largest ocean on Earth", "en": "7", "g": 1}, {"n": 9, "d": "D", "r": 4, "c": 18, "a": "URGENCY", "t": "Urgency", "clue": "\"Act NOW or your account closes!\" is this social engineering tactic", "en": "7"}, {"n": 12, "d": "D", "r": 6, "c": 10, "a": "ASIA", "t": "Asia", "clue": "Largest continent", "en": "4", "g": 1}, {"n": 13, "d": "D", "r": 7, "c": 8, "a": "ZERODAY", "t": "Zero day", "clue": "Brand-new vulnerability that defenders don't know about yet", "en": "4,3"}, {"n": 15, "d": "D", "r": 9, "c": 2, "a": "CANADA", "t": "Canada", "clue": "Country directly north of the United States", "en": "6", "g": 1}, {"n": 16, "d": "D", "r": 11, "c": 10, "a": "TEXAS", "t": "Texas", "clue": "Largest state in the lower 48 U.S. states", "en": "5", "g": 1}, {"n": 17, "d": "D", "r": 11, "c": 17, "a": "DEEPFAKE", "t": "Deepfake", "clue": "AI-made fake video or voice of a real person", "en": "8"}, {"n": 19, "d": "D", "r": 12, "c": 4, "a": "SSID", "t": "SSID", "clue": "The name of a Wi-Fi network", "en": "4"}], "title": "Unit 1 · Introduction to Security", "topics": "Topics 1.1–1.5"}, "u2": {"rows": 23, "cols": 23, "entries": [{"n": 3, "d": "A", "r": 2, "c": 11, "a": "SCRIPTKIDDIE", "t": "Script kiddie", "clue": "Low-skill attacker using other people's tools", "en": "6,6"}, {"n": 5, "d": "A", "r": 4, "c": 12, "a": "TAILGATING", "t": "Tailgating", "clue": "Sneaking in behind someone without them noticing", "en": "10"}, {"n": 7, "d": "A", "r": 7, "c": 14, "a": "RISK", "t": "Risk", "clue": "What you get when a threat can exploit a vulnerability", "en": "4"}, {"n": 10, "d": "A", "r": 10, "c": 8, "a": "PERU", "t": "Peru", "clue": "South American country home to Machu Picchu", "en": "4", "g": 1}, {"n": 12, "d": "A", "r": 10, "c": 15, "a": "ATLANTIC", "t": "Atlantic", "clue": "Ocean between the Americas and Europe", "en": "8", "g": 1}, {"n": 14, "d": "A", "r": 12, "c": 8, "a": "DUMPSTERDIVING", "t": "Dumpster diving", "clue": "Digging through trash for useful information", "en": "8,6"}, {"n": 17, "d": "A", "r": 14, "c": 0, "a": "AUTHORITY", "t": "Authority", "clue": "Social engineering tactic: pretending to be the boss", "en": "9"}, {"n": 18, "d": "A", "r": 15, "c": 10, "a": "MITIGATION", "t": "Mitigation", "clue": "Adding controls to reduce a risk", "en": "10"}, {"n": 19, "d": "A", "r": 17, "c": 4, "a": "NEVADA", "t": "Nevada", "clue": "State where Las Vegas is located", "en": "6", "g": 1}, {"n": 22, "d": "A", "r": 17, "c": 16, "a": "MEXICO", "t": "Mexico", "clue": "Country directly south of the United States", "en": "6", "g": 1}, {"n": 23, "d": "A", "r": 19, "c": 0, "a": "THREAT", "t": "Threat", "clue": "Anything that could cause harm, like an attacker or a flood", "en": "6"}, {"n": 24, "d": "A", "r": 20, "c": 7, "a": "SHOULDERSURFING", "t": "Shoulder surfing", "clue": "Peeking at someone's screen or keypad", "en": "8,7"}, {"n": 25, "d": "A", "r": 22, "c": 11, "a": "INTEGRITY", "t": "Integrity", "clue": "CIA triad: data stays accurate and unchanged", "en": "9"}, {"n": 1, "d": "D", "r": 0, "c": 12, "a": "HACKTIVIST", "t": "Hacktivist", "clue": "Hacker driven by a political or social cause", "en": "10"}, {"n": 2, "d": "D", "r": 1, "c": 21, "a": "PIGGYBACKING", "t": "Piggybacking", "clue": "Tricking someone into holding the door for you", "en": "12"}, {"n": 4, "d": "D", "r": 3, "c": 2, "a": "VULNERABILITY", "t": "Vulnerability", "clue": "A weakness or flaw that could be exploited", "en": "13"}, {"n": 6, "d": "D", "r": 6, "c": 16, "a": "ASSET", "t": "Asset", "clue": "Anything of value an organization wants to protect", "en": "5"}, {"n": 8, "d": "D", "r": 8, "c": 19, "a": "CONFIDENTIALITY", "t": "Confidentiality", "clue": "CIA triad: only authorized people can see the data", "en": "15"}, {"n": 9, "d": "D", "r": 9, "c": 0, "a": "AVAILABILITY", "t": "Availability", "clue": "CIA triad: systems are up when people need them", "en": "12"}, {"n": 11, "d": "D", "r": 10, "c": 10, "a": "ROME", "t": "Rome", "clue": "Capital of Italy", "en": "4", "g": 1}, {"n": 12, "d": "D", "r": 10, "c": 15, "a": "AFRICA", "t": "Africa", "clue": "Continent where the Sahara Desert is", "en": "6", "g": 1}, {"n": 13, "d": "D", "r": 11, "c": 12, "a": "OSINT", "t": "OSINT", "clue": "Public, freely available information used for recon (abbr.)", "en": "5"}, {"n": 15, "d": "D", "r": 12, "c": 17, "a": "INSIDER", "t": "Insider", "clue": "Threat who already works inside the organization", "en": "7"}, {"n": 16, "d": "D", "r": 13, "c": 5, "a": "PRETEXTING", "t": "Pretexting", "clue": "Making up a believable story or reason to contact a target", "en": "10"}, {"n": 20, "d": "D", "r": 17, "c": 7, "a": "ALASKA", "t": "Alaska", "clue": "Largest U.S. state by area", "en": "6", "g": 1}, {"n": 21, "d": "D", "r": 17, "c": 12, "a": "LONDON", "t": "London", "clue": "Capital of the United Kingdom", "en": "6", "g": 1}], "title": "Unit 2 · Securing Spaces", "topics": "Topics 2.1–2.4"}, "u3": {"rows": 19, "cols": 19, "entries": [{"n": 3, "d": "A", "r": 3, "c": 1, "a": "MACSPOOFING", "t": "MAC spoofing", "clue": "Faking a device's hardware address", "en": "3,8"}, {"n": 5, "d": "A", "r": 3, "c": 13, "a": "AMAZON", "t": "Amazon", "clue": "Huge rainforest and river in South America", "en": "6", "g": 1}, {"n": 6, "d": "A", "r": 5, "c": 0, "a": "SNIFFING", "t": "Sniffing", "clue": "Capturing network traffic to read it (also called eavesdropping)", "en": "8"}, {"n": 7, "d": "A", "r": 5, "c": 9, "a": "SWITCH", "t": "Switch", "clue": "Network device a MAC flooding attack overloads", "en": "6"}, {"n": 9, "d": "A", "r": 8, "c": 7, "a": "PORTSECURITY", "t": "Port security", "clue": "Switch setting that blocks unknown devices plugged into a jack", "en": "4,8"}, {"n": 12, "d": "A", "r": 9, "c": 3, "a": "CHINA", "t": "China", "clue": "Country home to the Great Wall", "en": "5", "g": 1}, {"n": 14, "d": "A", "r": 11, "c": 14, "a": "WEP", "t": "WEP", "clue": "Old, insecure Wi-Fi encryption (abbr.)", "en": "3"}, {"n": 15, "d": "A", "r": 13, "c": 2, "a": "DDOS", "t": "DDoS", "clue": "Denial of service from many devices at once (abbr.)", "en": "4"}, {"n": 18, "d": "A", "r": 13, "c": 11, "a": "BEACON", "t": "Beacon", "clue": "___ frame: announces a Wi-Fi network's name", "en": "6"}, {"n": 20, "d": "A", "r": 15, "c": 2, "a": "ARP", "t": "ARP", "clue": "Protocol that matches IP addresses to MAC addresses (abbr.)", "en": "3"}, {"n": 21, "d": "A", "r": 15, "c": 6, "a": "MACFILTERING", "t": "MAC filtering", "clue": "Only letting approved device addresses join the network", "en": "3,9"}, {"n": 22, "d": "A", "r": 17, "c": 4, "a": "TELNET", "t": "Telnet", "clue": "Insecure remote-login service routers should disable", "en": "6"}, {"n": 1, "d": "D", "r": 0, "c": 2, "a": "HAWAII", "t": "Hawaii", "clue": "U.S. state made up of islands in the Pacific", "en": "6", "g": 1}, {"n": 2, "d": "D", "r": 2, "c": 17, "a": "ROGUE", "t": "Rogue", "clue": "___ access point: an unauthorized WAP plugged into the network", "en": "5"}, {"n": 4, "d": "D", "r": 3, "c": 5, "a": "POISONING", "t": "Poisoning", "clue": "DNS ___: planting a fake record to send users to a bad site", "en": "9"}, {"n": 5, "d": "D", "r": 3, "c": 13, "a": "ARCTIC", "t": "Arctic", "clue": "Smallest, coldest ocean, around the North Pole", "en": "6", "g": 1}, {"n": 7, "d": "D", "r": 5, "c": 9, "a": "SMURF", "t": "Smurf", "clue": "DoS attack that floods a victim with ping replies", "en": "5"}, {"n": 8, "d": "D", "r": 7, "c": 7, "a": "WPA3", "t": "WPA3", "clue": "Strongest Wi-Fi encryption today", "en": "4"}, {"n": 10, "d": "D", "r": 8, "c": 12, "a": "EUROPE", "t": "Europe", "clue": "Continent where France and Germany are", "en": "6", "g": 1}, {"n": 11, "d": "D", "r": 8, "c": 16, "a": "ICMP", "t": "ICMP", "clue": "Protocol used by ping (abbr.)", "en": "4"}, {"n": 13, "d": "D", "r": 11, "c": 2, "a": "INDIA", "t": "India", "clue": "Country home to the Taj Mahal", "en": "5", "g": 1}, {"n": 16, "d": "D", "r": 13, "c": 4, "a": "ONPATH", "t": "On-path", "clue": "Attack where someone secretly sits between two parties (formerly man-in-the-middle)", "en": "2-4"}, {"n": 17, "d": "D", "r": 13, "c": 7, "a": "SPAIN", "t": "Spain", "clue": "Country whose capital is Madrid", "en": "5", "g": 1}, {"n": 19, "d": "D", "r": 13, "c": 15, "a": "OHIO", "t": "Ohio", "clue": "U.S. state whose name starts and ends with O", "en": "4", "g": 1}], "title": "Topics 3.1 & 3.2 · Securing Networks", "topics": "Network Attacks · Managerial Controls & Wireless Security"}};
+const MAX_HINTS = 3;
 
 function fmt(ms) {
   const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
@@ -771,13 +803,17 @@ function buildPuzzle(key) {
 
   const across = P.entries.filter(e => e.d === 'A'), down = P.entries.filter(e => e.d === 'D');
   const clueList = list => list.map(e =>
-    `<li><button type="button" class="xw-clue" data-id="${e.id}"><span class="n">${e.n}</span><span>${e.clue} <span class="en">(${e.en})</span></span></button></li>`).join('');
+    `<li><button type="button" class="xw-clue" data-id="${e.id}"><span class="n">${e.n}</span><span>${e.g ? '<span class="geo-tag">GEO</span> ' : ''}${e.clue} <span class="en">(${e.en})</span></span></button></li>`).join('');
+  const byTerm = (a, b) => a.t.localeCompare(b.t);
+  const chips = list => list.slice().sort(byTerm).map(e =>
+    `<li class="xw-chip" data-id="${e.id}">${e.t}</li>`).join('');
+  const cyber = P.entries.filter(e => !e.g), geo = P.entries.filter(e => e.g);
 
   root.innerHTML = `
     <div class="xw-head">
       <div>
         <h1>${P.title}</h1>
-        <div class="xw-meta">${P.topics} · ${P.entries.length} terms · ${P.cols}×${P.rows} grid</div>
+        <div class="xw-meta">${P.topics} · ${cyber.length} cyber terms + ${geo.length} geography · ${P.cols}×${P.rows} grid</div>
       </div>
       <div class="xw-controls">
         <div class="xw-timer" role="timer" aria-label="Elapsed time">
@@ -797,12 +833,19 @@ function buildPuzzle(key) {
         <div class="xw-gate">
           <div class="xw-gate-card">
             <h2>Ready when you are</h2>
-            <p>The clock starts the moment you press Start and stops when every square is correct.</p>
+            <p>The clock starts the moment you press Start and stops when every square is correct. You get ${MAX_HINTS} hints, and the Word Bank lists every answer.</p>
             <button type="button" class="btn xw-start2">Start puzzle</button>
           </div>
         </div>
       </section>
-      <aside class="panel xw-cluepanel" aria-label="Clues">
+      <aside class="panel xw-cluepanel" aria-label="Word bank and clues">
+        <details class="xw-bank" open>
+          <summary>Word Bank <span class="xw-bank-count">0 / ${P.entries.length}</span></summary>
+          <div class="xw-bank-body">
+            <h3>Cyber</h3><ul>${chips(cyber)}</ul>
+            <h3>Geography</h3><ul>${chips(geo)}</ul>
+          </div>
+        </details>
         <div class="xw-clues">
           <h3>Across</h3><ol>${clueList(across)}</ol>
           <h3>Down</h3><ol>${clueList(down)}</ol>
@@ -845,6 +888,7 @@ function buildPuzzle(key) {
     S.inputs[empty[0] + ',' + empty[1]].focus();
   }));
   sizeGrid(S);
+  updateHintBtn(S);
 }
 
 function sizeGrid(S) {
@@ -890,8 +934,9 @@ function paint(S) {
     const btn = S.root.querySelector(`.xw-clue[data-id="${w.id}"]`), box = S.root.querySelector('.xw-clues');
     if (btn && box) {  // scroll only the clue list, never the page
       const b = btn.getBoundingClientRect(), x = box.getBoundingClientRect();
-      if (b.top < x.top) box.scrollTop -= x.top - b.top + 8;
-      else if (b.bottom > x.bottom) box.scrollTop += b.bottom - x.bottom + 8;
+      const top = Math.max(x.top, 0), bottom = Math.min(x.bottom, window.innerHeight);
+      if (b.top < top) box.scrollTop -= top - b.top + 8;
+      else if (b.bottom > bottom) box.scrollTop += b.bottom - bottom + 8;
     }
   }
 }
@@ -974,11 +1019,16 @@ function afterChange(S) {
     if (v) filled++;
     if (v === S.sol[r][c]) correct++;
   }
+  let solved = 0;
   S.P.entries.forEach(e => {
     const ok = e.cells.every(([r, c]) => S.inputs[r + ',' + c].value === S.sol[r][c]);
+    if (ok) solved++;
     const b = S.root.querySelector(`.xw-clue[data-id="${e.id}"]`);
     if (b) b.classList.toggle('solved', ok);
+    const chip = S.root.querySelector(`.xw-chip[data-id="${e.id}"]`);
+    if (chip) chip.classList.toggle('solved', ok);
   });
+  S.root.querySelector('.xw-bank-count').textContent = `${solved} / ${S.P.entries.length}`;
   const status = S.root.querySelector('.xw-status');
   if (correct === total) return finish(S);
   status.textContent = filled === total
@@ -997,7 +1047,7 @@ function start(S) {
   Object.values(S.inputs).forEach(i => i.disabled = false);
   S.root.querySelector('.xw-start').disabled = true;
   S.root.querySelector('.xw-check').disabled = false;
-  S.root.querySelector('.xw-hint').disabled = false;
+  S.root.querySelector('.xw-hint').disabled = S.hints >= MAX_HINTS;
   S.root.querySelector('.xw-reset').disabled = false;
   S.root.querySelector('.xw-timer').classList.add('running');
   S.timer = setInterval(() => tick(S), 250); tick(S);
@@ -1007,13 +1057,14 @@ function start(S) {
 }
 
 function updateHintBtn(S) {
-  const b = S.root.querySelector('.xw-hint');
-  b.textContent = S.hints ? `Hint (${S.hints})` : 'Hint';
-  b.setAttribute('aria-label', S.hints ? `Hint, ${S.hints} used so far` : 'Hint: reveal one letter');
+  const b = S.root.querySelector('.xw-hint'), left = MAX_HINTS - S.hints;
+  b.textContent = left > 0 ? `Hint (${left} left)` : 'No hints left';
+  b.setAttribute('aria-label', left > 0 ? `Hint: reveal one letter. ${left} of ${MAX_HINTS} left` : 'No hints left');
+  if (left <= 0) b.disabled = true;
 }
 
 function hint(S) {
-  if (!S.running || S.done) return;
+  if (!S.running || S.done || S.hints >= MAX_HINTS) return;
   const need = ([r, c]) => S.inputs[r + ',' + c].value !== S.sol[r][c];
   let w = S.cur ? wordAt(S, S.cur[0], S.cur[1], S.dir) : null;
   let target = null;
@@ -1029,12 +1080,14 @@ function hint(S) {
   inp.readOnly = true;
   inp.parentNode.classList.add('hinted');
   S.hints++; updateHintBtn(S);
+  const used = S.hints >= MAX_HINTS;
   const word = wordAt(S, target[0], target[1], S.dir);
   inp.focus();
   afterChange(S);
   if (!S.done) {
     const next = word && word.cells.find(([r, c]) => !S.inputs[r + ',' + c].value);
     if (next) S.inputs[next.join(',')].focus();
+    if (used) S.root.querySelector('.xw-status').textContent = 'That was your last hint. Use the Word Bank and crossing letters from here.';
   }
 }
 
@@ -1058,6 +1111,8 @@ function reset(S) {
   Object.values(S.inputs).forEach(i => { setLetter(S, i, '', true); i.readOnly = false; i.disabled = true; i.tabIndex = -1; });
   S.root.querySelectorAll('.xw-cell').forEach(el => el.classList.remove('inword', 'cur', 'bad', 'hinted'));
   S.root.querySelectorAll('.xw-clue').forEach(b => b.classList.remove('active', 'solved'));
+  S.root.querySelectorAll('.xw-chip').forEach(b => b.classList.remove('solved'));
+  S.root.querySelector('.xw-bank-count').textContent = `0 / ${S.P.entries.length}`;
   S.root.querySelector('.xw-body').classList.add('xw-locked');
   S.root.querySelector('.xw-timer-val').textContent = '00:00';
   S.root.querySelector('.xw-timer-lbl').textContent = 'Time';
