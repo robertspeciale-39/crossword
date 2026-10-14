@@ -497,7 +497,7 @@ table.cs-table { width: 100%; border-collapse: collapse; }
 }
 
 /* Locked state before Start */
-.xw-locked .xw-grid, .xw-locked .xw-clues, .xw-locked .xw-cluebar, .xw-locked .xw-bank { filter: blur(6px); opacity: .5; pointer-events: none; user-select: none; }
+.xw-locked .xw-grid, .xw-locked .xw-clues, .xw-locked .xw-cluebar { filter: blur(6px); opacity: .5; pointer-events: none; user-select: none; }
 .xw-gate {
   position: absolute; inset: 0; z-index: 5; display: none;
   align-items: center; justify-content: center; padding: var(--sp-6);
@@ -513,31 +513,6 @@ table.cs-table { width: 100%; border-collapse: collapse; }
   letter-spacing: -0.02em; color: var(--text-bright); margin-bottom: var(--sp-2);
 }
 .xw-gate-card p { color: var(--text-2); font-size: var(--fs-sm); margin-bottom: var(--sp-4); }
-
-/* Word bank */
-.xw-bank { border-bottom: 1px solid var(--line); flex-shrink: 0; }
-.xw-bank summary {
-  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2);
-  min-height: 44px; padding: var(--sp-2) var(--sp-5); cursor: pointer;
-  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 700;
-  color: var(--primary); letter-spacing: .14em; text-transform: uppercase;
-}
-.xw-bank summary::marker { color: var(--text-dim); }
-.xw-bank-count { color: var(--text-dim); font-weight: 600; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
-.xw-bank-body { padding: 0 var(--sp-5) var(--sp-4); max-height: 42dvh; overflow-y: auto; }
-.xw-bank-body h3 {
-  font-family: var(--font-mono); font-size: var(--fs-2xs); font-weight: 600; color: var(--text-dim);
-  letter-spacing: .12em; text-transform: uppercase; margin: var(--sp-2) 0 var(--sp-2);
-}
-.xw-bank-body ul { list-style: none; display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-2); }
-.xw-chip {
-  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .03em;
-  text-transform: uppercase; color: var(--text-bright);
-  padding: 3px var(--sp-2); border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: var(--surface-2);
-}
-/* Solved: strikethrough + check, never colour alone */
-.xw-chip.solved { color: var(--text-dim); text-decoration: line-through; border-color: var(--line); background: transparent; }
-.xw-chip.solved::before { content: '✓ '; color: var(--u1); text-decoration: none; display: inline-block; margin-right: 2px; }
 
 .geo-tag {
   font-family: var(--font-mono); font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .08em;
@@ -804,9 +779,6 @@ function buildPuzzle(key) {
   const across = P.entries.filter(e => e.d === 'A'), down = P.entries.filter(e => e.d === 'D');
   const clueList = list => list.map(e =>
     `<li><button type="button" class="xw-clue" data-id="${e.id}"><span class="n">${e.n}</span><span>${e.g ? '<span class="geo-tag">GEO</span> ' : ''}${e.clue} <span class="en">(${e.en})</span></span></button></li>`).join('');
-  const byTerm = (a, b) => a.t.localeCompare(b.t);
-  const chips = list => list.slice().sort(byTerm).map(e =>
-    `<li class="xw-chip" data-id="${e.id}">${e.t}</li>`).join('');
   const cyber = P.entries.filter(e => !e.g), geo = P.entries.filter(e => e.g);
 
   root.innerHTML = `
@@ -833,19 +805,12 @@ function buildPuzzle(key) {
         <div class="xw-gate">
           <div class="xw-gate-card">
             <h2>Ready when you are</h2>
-            <p>The clock starts the moment you press Start and stops when every square is correct. You get ${MAX_HINTS} hints, and the Word Bank lists every answer.</p>
+            <p>The clock starts the moment you press Start and stops when every square is correct. You get ${MAX_HINTS} hints.</p>
             <button type="button" class="btn xw-start2">Start puzzle</button>
           </div>
         </div>
       </section>
-      <aside class="panel xw-cluepanel" aria-label="Word bank and clues">
-        <details class="xw-bank" open>
-          <summary>Word Bank <span class="xw-bank-count">0 / ${P.entries.length}</span></summary>
-          <div class="xw-bank-body">
-            <h3>Cyber</h3><ul>${chips(cyber)}</ul>
-            <h3>Geography</h3><ul>${chips(geo)}</ul>
-          </div>
-        </details>
+      <aside class="panel xw-cluepanel" aria-label="Clues">
         <div class="xw-clues">
           <h3>Across</h3><ol>${clueList(across)}</ol>
           <h3>Down</h3><ol>${clueList(down)}</ol>
@@ -1019,16 +984,11 @@ function afterChange(S) {
     if (v) filled++;
     if (v === S.sol[r][c]) correct++;
   }
-  let solved = 0;
   S.P.entries.forEach(e => {
     const ok = e.cells.every(([r, c]) => S.inputs[r + ',' + c].value === S.sol[r][c]);
-    if (ok) solved++;
     const b = S.root.querySelector(`.xw-clue[data-id="${e.id}"]`);
     if (b) b.classList.toggle('solved', ok);
-    const chip = S.root.querySelector(`.xw-chip[data-id="${e.id}"]`);
-    if (chip) chip.classList.toggle('solved', ok);
   });
-  S.root.querySelector('.xw-bank-count').textContent = `${solved} / ${S.P.entries.length}`;
   const status = S.root.querySelector('.xw-status');
   if (correct === total) return finish(S);
   status.textContent = filled === total
@@ -1087,7 +1047,7 @@ function hint(S) {
   if (!S.done) {
     const next = word && word.cells.find(([r, c]) => !S.inputs[r + ',' + c].value);
     if (next) S.inputs[next.join(',')].focus();
-    if (used) S.root.querySelector('.xw-status').textContent = 'That was your last hint. Use the Word Bank and crossing letters from here.';
+    if (used) S.root.querySelector('.xw-status').textContent = 'That was your last hint. Use the crossing letters from here.';
   }
 }
 
@@ -1111,8 +1071,6 @@ function reset(S) {
   Object.values(S.inputs).forEach(i => { setLetter(S, i, '', true); i.readOnly = false; i.disabled = true; i.tabIndex = -1; });
   S.root.querySelectorAll('.xw-cell').forEach(el => el.classList.remove('inword', 'cur', 'bad', 'hinted'));
   S.root.querySelectorAll('.xw-clue').forEach(b => b.classList.remove('active', 'solved'));
-  S.root.querySelectorAll('.xw-chip').forEach(b => b.classList.remove('solved'));
-  S.root.querySelector('.xw-bank-count').textContent = `0 / ${S.P.entries.length}`;
   S.root.querySelector('.xw-body').classList.add('xw-locked');
   S.root.querySelector('.xw-timer-val').textContent = '00:00';
   S.root.querySelector('.xw-timer-lbl').textContent = 'Time';
